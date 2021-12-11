@@ -97,35 +97,39 @@ service isc-dhcp-server restart
  
  ### D.1) DHCP Relay
  DHCP relay utamanya akan diinstal di semua router dan akan dikonfigurasikan port eth yang digunakannya
+ <br>
  **Foosha**
  ```
  apt-get install isc-dhcp-relay -y
-
 echo '
 SERVERS="192.216.7.131"
 INTERFACES="eth2 eth1"
 OPTIONS=""
 ' > /etc/default/isc-dhcp-relay
 service isc-dhcp-relay restart
- `
+ ```
  <br>
  **Water7**
- `apt install isc-dhcp-relay -y
-echo '
-SERVERS="192.216.7.131"
-INTERFACES="eth2 eth3 eth0 eth1"
-OPTIONS=""
-' > /etc/default/isc-dhcp-relay
-service isc-dhcp-relay restart
-`
+ 
+    ```
+    apt install isc-dhcp-relay -y
+    echo '
+    SERVERS="192.216.7.131"
+    INTERFACES="eth2 eth3 eth0 eth1"
+    OPTIONS=""
+    ' > /etc/default/isc-dhcp-relay
+    service isc-dhcp-relay restart
+   ```
+
 <br>
-**Guanhao**
-`
-apt install isc-dhcp-relay -y
-echo '
-SERVERS="192.216.7.131"
-INTERFACES="eth2 eth3 eth1 eth0"
-OPTIONS=""
-' > /etc/default/isc-dhcp-relay
-service isc-dhcp-relay restart
-```
+ **Guanhao**
+ 
+    ```
+    apt install isc-dhcp-relay -y
+    echo '
+    SERVERS="192.216.7.131"
+    INTERFACES="eth2 eth3 eth1 eth0"
+    OPTIONS=""
+    ' > /etc/default/isc-dhcp-relay
+    service isc-dhcp-relay restart
+    ```
