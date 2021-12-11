@@ -120,29 +120,89 @@ service isc-dhcp-relay restart
  <br>
  **Water7**
  
-    ```
-    apt install isc-dhcp-relay -y
-    echo '
-    SERVERS="192.216.7.131"
-    INTERFACES="eth2 eth3 eth0 eth1"
-    OPTIONS=""
-    ' > /etc/default/isc-dhcp-relay
-    service isc-dhcp-relay restart
-   ```
+```
+apt install isc-dhcp-relay -y
+echo '
+SERVERS="192.216.7.131"
+INTERFACES="eth2 eth3 eth0 eth1"
+OPTIONS=""
+' > /etc/default/isc-dhcp-relay
+service isc-dhcp-relay restart
+```
 
 <br>
  **Guanhao**
  
-    ```
-    apt install isc-dhcp-relay -y
-    echo '
-    SERVERS="192.216.7.131"
-    INTERFACES="eth2 eth3 eth1 eth0"
-    OPTIONS=""
-    ' > /etc/default/isc-dhcp-relay
-    service isc-dhcp-relay restart
-    ```
 ```
+apt install isc-dhcp-relay -y
+echo '
+SERVERS="192.216.7.131"
+INTERFACES="eth2 eth3 eth1 eth0"
+OPTIONS=""
+' > /etc/default/isc-dhcp-relay
+service isc-dhcp-relay restart
+```
+
+
+### No. 1
+
+### Agar topologi yang kalian buat dapat mengakses keluar, kalian diminta untuk mengkonfigurasi Foosha menggunakan iptables, tetapi Luffy tidak ingin menggunakan MASQUERADE.
+
+pada persoalan ini, kami menggunakan SNAT sebagai metode pengganti masquerade. Karena Foosha kami menggunakan IP DHCP, maka IP tersebut perlu diambil dan disimpan di dalam variabel `IPETH0` yang nantinya akan digunakan pada command iptables SNAT
+
+```
+IPETH0="$(ip -br a | grep eth0 | awk '{print $NF}' | cut -d'/' -f1)"
+iptables -t nat -A POSTROUTING -o eth0 -j SNAT --to-source "$IPETH0" -s 192.216.0.0/21
+```
+
+berikut adalah dokumentasi saat Foosha ping ke google.com
+<br>
+<img src="https://github.com/KevinNath01/Jarkom-Modul-5-T10-2021/blob/main/Dokumentasi/1.png">
+
+### No. 2
+
+### Kalian diminta untuk mendrop semua akses HTTP dari luar Topologi kalian pada server yang merupakan DHCP Server dan DNS Server demi menjaga keamanan.
+
+untuk mendrop akses HTTP, kami memberikan command iptables untuk mendrop akses port 80 eth0 pada IP Doriki dan IP JIpanggu
+
+```
+iptables -A FORWARD -d 192.216.7.131 -i eth0 -p tcp --dport 80 -j DROP
+iptables -A FORWARD -d 192.216.7.130 -i eth0 -p tcp --dport 80 -j DROP
+```
+
+berikut adalah dokumentasi saat CIPHER melakukan nmap port 80 pada Jipanggu
+<br>
+<img src="https://github.com/KevinNath01/Jarkom-Modul-5-T10-2021/blob/main/Dokumentasi/2.1.png">
+
+berikut adalah dokumentasi saat CIPHER melakukan nmap port 80 pada Doriki
+<br>
+<img src="https://github.com/KevinNath01/Jarkom-Modul-5-T10-2021/blob/main/Dokumentasi/2.2.png">
+
+### No. 3
+
+### Karena kelompok kalian maksimal terdiri dari 3 orang. Luffy meminta kalian untuk membatasi DHCP dan DNS Server hanya boleh menerima maksimal 3 koneksi ICMP secara bersamaan menggunakan iptables, selebihnya didrop.
+
+untuk menjawab persoalan ini, kami memberikan command connection limit dengan menggunakan iptables, yang dimana akan mendrop koneksi ICMP apabila melebihi 3 koneksi
+
+```
+iptables -A INPUT -p icmp -m connlimit --connlimit-above 3 --connlimit-mask 0 -j DROP
+```
+
+berikut adalah dokumentasi saat CIPHER melakukan ping pada IP Jipanggu
+<br>
+<img src="https://github.com/KevinNath01/Jarkom-Modul-5-T10-2021/blob/main/Dokumentasi/3.1.png">
+
+berikut adalah dokumentasi saat BLUENO melakukan ping pada IP Jipanggu
+<br>
+<img src="https://github.com/KevinNath01/Jarkom-Modul-5-T10-2021/blob/main/Dokumentasi/3.2.png">
+
+berikut adalah dokumentasi saat GUANHAO melakukan ping pada IP Jipanggu
+<br>
+<img src="https://github.com/KevinNath01/Jarkom-Modul-5-T10-2021/blob/main/Dokumentasi/3.3.png">
+
+berikut adalah dokumentasi saat WATER7 melakukan ping pada IP Jipanggu
+<br>
+<img src="https://github.com/KevinNath01/Jarkom-Modul-5-T10-2021/blob/main/Dokumentasi/3.4.png">
 
 ### No. 4 & 5
 
