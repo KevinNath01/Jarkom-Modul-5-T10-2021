@@ -12,7 +12,7 @@ Anggota Kelompok T10:<br>
 
 ### A) Topologi
 <br>
-<img src="https://github.com/KevinNath01/Jarkom-Modul-5-T10-2021/blob/main/Dokumentasi/Topologi5.jpeg">
+<img src="https://github.com/KevinNath01/Jarkom-Modul-5-T10-2021/blob/main/Dokumentasi/topologi5.jpeg">
 <br>
 
 ### B) Subnetting
