@@ -11,11 +11,13 @@ Anggota Kelompok T10:<br>
 # Soal <a name="Soal"></a>
 
 ### A) Topologi
+
 <br>
 <img src="https://github.com/KevinNath01/Jarkom-Modul-5-T10-2021/blob/main/Dokumentasi/topologi5.jpeg">
 <br>
 
 ### B) Subnetting
+
 Subnetting dilakukan dengan menggunakan metode VLSM dan menggunakan pembagian subneting sebagai berikut
 <br>
 <img src="https://github.com/KevinNath01/Jarkom-Modul-5-T10-2021/blob/main/Dokumentasi/subnet5.png">
@@ -26,8 +28,10 @@ Dari pembagian subnetting terseut dibuatlah tree untuk menentukan ip subnetnya m
 <br>
 
 ### C) Routing IP
+
 Routing akan dilakukan di Foosha yang akan merutekan ke seluruh subnet agar setiap subnet dan pc bisa saling terhubung
 **Foosha**
+
 ```
 route add -net 192.216.7.0 netmask 255.255.255.128 gw 192.216.7.146 #BLUENO
 route add -net 192.216.0.0 netmask 255.255.252.0 gw 192.216.7.146 #CIPHER
@@ -39,9 +43,11 @@ route add -net 192.216.7.136 netmask 255.255.255.248 gw 192.216.7.150 #Maingate 
 ```
 
 ### D) IP Address (DHCP Server)
+
 IP Address disetting untuk Blueno,Cipher,Fukurou dan Elena , pengaturannya sendiri dilakukan di node Jipangu sebagai DHCP Server
-di node Jipangu akan di unduh untuk DHCP servernya yang kemudian diatur interfacenya `eth0` , kemudian tiap subnet yang membutuhkan ip dinamis akan disetting , dari range yang bisa dihitung dari perhitungan subnet, router yang terhubung dengan subnetnya , broadcast address, dns server yang memiliki IP 192.216.7.130 dan waktu peminjaman ip maksimal 2 jam yang sehabis itu akan direset lagi dengan ip baru 
+di node Jipangu akan di unduh untuk DHCP servernya yang kemudian diatur interfacenya `eth0` , kemudian tiap subnet yang membutuhkan ip dinamis akan disetting , dari range yang bisa dihitung dari perhitungan subnet, router yang terhubung dengan subnetnya , broadcast address, dns server yang memiliki IP 192.216.7.130 dan waktu peminjaman ip maksimal 2 jam yang sehabis itu akan direset lagi dengan ip baru
 **Jipangu**
+
 ```
 apt install isc-dhcp-server -y
 echo '
@@ -93,21 +99,24 @@ subnet 192.216.7.148 netmask 255.255.255.252 {}
 subnet 192.216.7.136 netmask 255.255.255.248 {}
 ' > /etc/dhcp/dhcpd.conf
 service isc-dhcp-server restart
- ```
- 
- ### D.1) DHCP Relay
- DHCP relay utamanya akan diinstal di semua router dan akan dikonfigurasikan port eth yang digunakannya
- <br>
- **Foosha**
- ```
- apt-get install isc-dhcp-relay -y
+```
+
+### D.1) DHCP Relay
+
+DHCP relay utamanya akan diinstal di semua router dan akan dikonfigurasikan port eth yang digunakannya
+<br>
+**Foosha**
+
+```
+apt-get install isc-dhcp-relay -y
 echo '
 SERVERS="192.216.7.131"
 INTERFACES="eth2 eth1"
 OPTIONS=""
 ' > /etc/default/isc-dhcp-relay
 service isc-dhcp-relay restart
- ```
+```
+
  <br>
  **Water7**
  
@@ -133,3 +142,78 @@ service isc-dhcp-relay restart
     ' > /etc/default/isc-dhcp-relay
     service isc-dhcp-relay restart
     ```
+```
+
+### No. 4 & 5
+
+#### Kemudian kalian diminta untuk membatasi akses ke Doriki yang berasal dari subnet Blueno, Cipher, Elena dan Fukuro dengan beraturan sebagai berikut :
+
+- Akses dari subnet Blueno dan Cipher hanya diperbolehkan pada pukul 07.00 - 15.00 pada hari Senin sampai Kamis
+- Akses dari subnet Elena dan Fukuro hanya diperbolehkan pada pukul 15.01 hingga pukul 06.59 setiap harinya.
+
+Pada file `run.sh` di dalam fungsi Doriki, kami berikan command sebagai berikut :
+
+```
+#Blueno
+iptables -A INPUT -s 192.216.7.0/25 -m time --weekdays Fri,Sat,Sun -j REJECT
+iptables -A INPUT -s 192.216.7.0/25 -m time --timestart 00:00 --timestop 06:59 --weekdays Mon,Tue,Wed,Thu -j REJECT
+iptables -A INPUT -s 192.216.7.0/25 -m time --timestart 15:01 --timestop 23:59 --weekdays Mon,Tue,Wed,Thu -j REJECT
+#Cipher
+iptables -A INPUT -s 192.216.0.0/22 -m time --weekdays Fri,Sat,Sun -j REJECT
+iptables -A INPUT -s 192.216.0.0/22 -m time --timestart 00:00 --timestop 06:59 --weekdays Mon,Tue,Wed,Thu -j REJECT
+iptables -A INPUT -s 192.216.0.0/22 -m time --timestart 15:01 --timestop 23:59 --weekdays Mon,Tue,Wed,Thu -j REJECT
+```
+
+yang artinya pada subnet `Blueno` dan `Cipher` tidak akan bisa mengakses Doriki pada hari `jumat, sabtu dan minggu`, sekaligus pada jam `00.00 - 06.59` dan jam `15:01 - 23:59` pada hari `senin sampai kamis`
+
+Berikut adalah dokumentasi saat bisa mengakses Doriki
+<br>
+<img src="https://github.com/KevinNath01/Jarkom-Modul-5-T10-2021/blob/main/Dokumentasi/4.1.png">
+
+Berikut saat tidak bisa mengakses Doriki
+<br>
+<img src="https://github.com/KevinNath01/Jarkom-Modul-5-T10-2021/blob/main/Dokumentasi/4.2.png">
+
+Untuk no 5 caranya juga sama, kami berikan command sebagai berikut pada file `run.sh` di dalam fungsi Doriki:
+
+```
+iptables -A INPUT -s 192.216.4.0/23 -m time --timestart 07:00 --timestop 15:00 -j REJECT #Elena
+iptables -A INPUT -s 192.216.6.0/24 -m time --timestart 07:00 --timestop 15:00 -j REJECT #Fukuro
+```
+
+yang artinya adalah untuk memblok subnet `Elena` dan `Fukuro` mulai jam `07:00 - 15:00`
+
+Berikut adalah dokumentasi saat bisa mengakses Doriki
+<Br>
+<img src="https://github.com/KevinNath01/Jarkom-Modul-5-T10-2021/blob/main/Dokumentasi/5.1.png">
+
+Berikut saat tidak bisa mengakses Doriki
+<br>
+<img src="https://github.com/KevinNath01/Jarkom-Modul-5-T10-2021/blob/main/Dokumentasi/5.2.png">
+
+### No. 6 Karena kita memiliki 2 Web Server, Luffy ingin Guanhao disetting sehingga setiap request dari client yang mengakses DNS Server akan didistribusikan secara bergantian pada Jorge dan Maingate
+
+Kami tambahkan command pada fungsi Guanhao, karena request yang dimodifikasi berasal dari client yang terhubung pada router Guanhao
+
+```
+iptables -A PREROUTING -t nat -p tcp -d 192.216.7.130 -m statistic --mode nth --every 2 --packet 0 -j DNAT --to-destination 192.216.7.138:80
+iptables -A PREROUTING -t nat -p tcp -d 192.216.7.130 -j DNAT --to-destination 192.216.7.139:80
+```
+
+maksud dari command diatas adalah, kita melakukan `PREROUTING` pada setiap paket yang menuju DNS Server yang mempunyai IP `192.216.7.130`. `-m statistic --mode nth --every 2 --packet 0` adalah algoritma round robin yang akan mendistribusikan `p paket` kepada `n host` dan algoritma ini membutuhkan 2 parameter, pertama `every (n)` dan `packet (p)`. Lalu perintah `DNAT` adalah untuk mengubah destinasi yang awalnya adalah `192.216.7.130` menjadi `192.216.7.138:80` (IP Jorge) dan `192.216.7.139:80` (IP Maingate)
+
+Berikut adalah pesan yang dikirim oleh client Elena :
+<br>
+<img src="https://github.com/KevinNath01/Jarkom-Modul-5-T10-2021/blob/main/Dokumentasi/6.1.png">
+
+Berikut adalah pesan yang dikirim oleh client Fukorou :
+<br>
+<img src="https://github.com/KevinNath01/Jarkom-Modul-5-T10-2021/blob/main/Dokumentasi/6.2.png">
+
+Berikut adalah pesan yang diterima oleh Web Server pertama yaitu Jorge :
+<br>
+<img src="https://github.com/KevinNath01/Jarkom-Modul-5-T10-2021/blob/main/Dokumentasi/6.3.png">
+
+Berikut adalah pesan yang diterima oleh Web Server kedua yaitu Maingate :
+<br>
+<img src="https://github.com/KevinNath01/Jarkom-Modul-5-T10-2021/blob/main/Dokumentasi/6.4.png">
